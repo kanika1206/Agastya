@@ -11,8 +11,8 @@ class BBox:
     y2: float
 
     def __post_init__(self) -> None:
-        if self.x2 < self.x1 or self.y2 < self.y1:
-            raise ValueError("bbox coordinates inverted")
+        if self.x2 <= self.x1 or self.y2 <= self.y1:
+            raise ValueError("bbox coordinates inverted or degenerate")
 
     def area(self) -> float:
         return (self.x2 - self.x1) * (self.y2 - self.y1)

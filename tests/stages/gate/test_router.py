@@ -18,3 +18,10 @@ def test_at_or_above_threshold_bypasses():
 def test_threshold_must_be_unit_interval():
     with pytest.raises(ValueError):
         score_to_decision(0.4, threshold=1.5)
+
+
+def test_score_must_be_unit_interval():
+    with pytest.raises(ValueError):
+        score_to_decision(1.5, threshold=0.5)
+    with pytest.raises(ValueError):
+        score_to_decision(-0.1, threshold=0.5)

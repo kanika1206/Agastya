@@ -13,6 +13,11 @@ def test_bbox_rejects_inverted():
         BBox(x1=5.0, y1=0.0, x2=1.0, y2=1.0)
 
 
+def test_bbox_rejects_degenerate():
+    with pytest.raises(ValueError):
+        BBox(x1=1.0, y1=0.0, x2=1.0, y2=2.0)
+
+
 def test_bbox_iou_identical_is_one():
     box = BBox(x1=0.0, y1=0.0, x2=2.0, y2=2.0)
     assert box.iou(box) == pytest.approx(1.0)

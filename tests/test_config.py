@@ -1,4 +1,5 @@
 import pytest
+from pydantic import ValidationError
 
 from agastya.config import PipelineConfig, VRAMProfile, select_profile
 
@@ -26,3 +27,9 @@ def test_low_profile_swaps_to_light_models():
 def test_gate_threshold_must_be_unit_interval():
     with pytest.raises(ValueError):
         PipelineConfig(profile=VRAMProfile.FULL, gate_threshold=2.0)
+
+
+def test_config_is_frozen():
+    cfg = PipelineConfig(profile=VRAMProfile.FULL)
+    with pytest.raises(ValidationError):
+        cfg.detector = "tampered"
