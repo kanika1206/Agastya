@@ -18,7 +18,7 @@ def parse_args() -> argparse.Namespace:
 
 def discover_images(raw_root: Path) -> list[tuple[str, str]]:
     entries: list[tuple[str, str]] = []
-    for source in ("idd", "aicity", "anpr"):
+    for source in ("roboflow",):
         source_dir = raw_root / source
         if not source_dir.exists():
             continue
