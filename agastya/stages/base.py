@@ -3,13 +3,13 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar
 
-I = TypeVar("I")
-O = TypeVar("O")
+TIn = TypeVar("TIn")
+TOut = TypeVar("TOut")
 
 
-class Stage(ABC, Generic[I, O]):
+class Stage(ABC, Generic[TIn, TOut]):
     name: str = "stage"
 
     @abstractmethod
-    def process(self, item: I) -> O:
+    def process(self, item: TIn) -> TOut:
         ...
