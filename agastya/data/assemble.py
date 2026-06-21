@@ -11,7 +11,7 @@ from agastya.data.manifest import build_manifest
 from agastya.data.schema_map import map_source_label
 from agastya.data.yolo_format import polygon_to_bbox_yolo
 
-_SOURCES = ("triple", "safety")
+_SOURCES = ("triple", "safety", "tvd2", "overload")
 
 
 def label_path_for_image(image_path: Path) -> Path:

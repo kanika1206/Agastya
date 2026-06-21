@@ -1,6 +1,6 @@
 import pytest
 
-from agastya.eval.prf import match_detections, precision_recall_f1
+from agastya.eval.prf import label_predictions, match_detections, precision_recall_f1
 from agastya.types import BBox, Detection
 
 
@@ -36,3 +36,23 @@ def test_match_respects_label():
     truths = [_det("no-helmet", 0.0)]
     tp, fp, fn = match_detections(preds, truths, iou_threshold=0.3)
     assert (tp, fp, fn) == (0, 1, 1)
+
+
+def test_label_predictions_flags_correct_match():
+    preds = [_det("helmet", 0.0, score=0.9)]
+    truths = [_det("helmet", 0.1)]
+    assert label_predictions(preds, truths, iou_threshold=0.3) == [(preds[0], True)]
+
+
+def test_label_predictions_flags_wrong_class_as_false():
+    preds = [_det("helmet", 0.0, score=0.9)]
+    truths = [_det("no-helmet", 0.0)]
+    assert label_predictions(preds, truths, iou_threshold=0.3) == [(preds[0], False)]
+
+
+def test_label_predictions_one_truth_matches_highest_score():
+    high = _det("helmet", 0.0, score=0.95)
+    low = _det("helmet", 0.1, score=0.60)
+    result = dict(label_predictions([low, high], [_det("helmet", 0.05)], iou_threshold=0.3))
+    assert result[high] is True
+    assert result[low] is False

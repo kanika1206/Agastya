@@ -16,8 +16,8 @@ def test_triple_number_plate_maps_to_license_plate():
     assert map_source_label("triple", "number_plate") == name_to_id("license-plate")
 
 
-def test_triple_triple_riding_maps():
-    assert map_source_label("triple", "Triple_riding") == name_to_id("triple-riding")
+def test_triple_triple_riding_drops():
+    assert map_source_label("triple", "Triple_riding") is None
 
 
 def test_triple_motorcycle_maps():
@@ -38,6 +38,30 @@ def test_safety_helmet_maps():
 
 def test_safety_no_helmet_maps():
     assert map_source_label("safety", "no-helmet") == name_to_id("no-helmet")
+
+
+def test_tvd2_triple_riding_drops():
+    assert map_source_label("tvd2", "Triple riding") is None
+
+
+def test_overload_motorcycle_maps():
+    assert map_source_label("overload", "motorcycle") == name_to_id("motorcycle")
+
+
+def test_overload_person_maps():
+    assert map_source_label("overload", "person") == name_to_id("person")
+
+
+def test_tvd2_no_helmet_maps():
+    assert map_source_label("tvd2", "No helmet") == name_to_id("no-helmet")
+
+
+def test_tvd2_using_mobile_drops():
+    assert map_source_label("tvd2", "Using mobile") is None
+
+
+def test_tvd2_wheeling_drops():
+    assert map_source_label("tvd2", "Wheeling") is None
 
 
 def test_unknown_source_label_returns_none():

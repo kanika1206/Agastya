@@ -55,14 +55,37 @@ This baseline is the **control** against which every later novel block
 
 ## Control table (fill from the real run — do NOT invent numbers)
 
-| class         | P | R | F1 | AP@50 | AP@50-95 |
-|---------------|---|---|----|-------|----------|
-| helmet        |   |   |    |       |          |
-| no-helmet     |   |   |    |       |          |
-| license-plate |   |   |    |       |          |
-| triple-riding |   |   |    |       |          |
-| **overall**   |   |   |    |       |          |
+| class         | P     | R     | F1    | AP@50 | AP@50-95 |
+|---------------|-------|-------|-------|-------|----------|
+| helmet        | 0.950 | 0.909 | 0.929 | 0.968 | 0.703    |
+| no-helmet     | 0.937 | 0.909 | 0.923 | 0.959 | 0.685    |
+| license-plate | 0.957 | 0.962 | 0.959 | 0.986 | 0.724    |
+| motorcycle    | 0.924 | 0.943 | 0.933 | 0.982 | 0.851    |
+| person        | 0.758 | 0.744 | 0.751 | 0.732 | 0.315    |
+| **overall**   | 0.905 | 0.893 | 0.899 | 0.926 | 0.656    |
+
+P and R from `yolo val` on `best.pt` (4566 val images, 22679 instances). F1
+computed as 2·P·R/(P+R). `person` is the weak class (P 0.758, R 0.744, AP@50
+0.732, AP@50-95 0.315) and gates rider-count rule accuracy — prioritize it in
+later improvement blocks.
+
+triple-riding is not a detected class — it is derived post-detection by the
+rider-count rule (`agastya/stages/associate/rules.py`). Evaluate it separately
+on images with ground-truth rider counts, not in this per-class detection table.
 
 Record the run date, dataset version (Roboflow export id), weights path, and
 training config (epochs, imgsz, batch) alongside the filled table so the
 control is reproducible.
+
+### Run record
+
+- **Date:** 2026-06-18
+- **Weights:** `runs/detect/train-3/weights/best.pt` (yolo26-p2, 2.4M params)
+- **Hardware:** Agastya cluster, Tesla V100
+- **Config:** 100 epochs, imgsz 640, P2 head, AMP. Train time ~9.7h.
+- **Source:** AP values from the training-run validation summary. Re-confirm
+  anytime with:
+  ```bash
+  yolo val model=runs/detect/train-3/weights/best.pt data=data/processed/data.yaml
+  ```
+- **Dataset version:** record the Roboflow export id used (not captured here).

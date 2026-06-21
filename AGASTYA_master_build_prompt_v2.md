@@ -177,3 +177,4 @@ You are a senior computer vision researcher + ML engineer. Build **AGASTYA**: a 
 - **Hyperledger Fabric / blockchain** — out of scope for the prototype (infra risk, no accuracy value). Local Merkle hash-chain + standards manifest covers the trust story. Mention Fabric only as a one-line "production extension."
 - **Group DRO, SAMURAI/SAMIDARE crowd modules, RFLA+QueryDet+Bi-AFPN stacked** — research-grade; SAHI + class-balanced loss + per-class thresholding patches the same failure modes at far lower risk. Ablation-only if time remains.
 - **KAN / efficient-KAN / GR-KAN / Convolutional-KAN** — dropped from the critical path (loses to MLP at equal budget on vision; huge training slowdown). Optional honest ablation only.
+

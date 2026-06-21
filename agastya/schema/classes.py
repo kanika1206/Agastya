@@ -2,8 +2,8 @@ CLASSES: tuple[str, ...] = (
     "helmet",
     "no-helmet",
     "license-plate",
-    "triple-riding",
     "motorcycle",
+    "person",
 )
 
 _NAME_TO_ID = {name: idx for idx, name in enumerate(CLASSES)}

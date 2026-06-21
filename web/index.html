@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AGASTYA — Tamper-Evident Traffic Enforcement · Bengaluru</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;0,6..72,800;1,6..72,400;1,6..72,500;1,6..72,600&family=Archivo:wght@400;500;600;700;800&family=Spline+Sans+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="agastya.css">
+<style>
+  .hero{position:relative;overflow:hidden;}
+  .hero-photo{position:absolute;inset:-4%;filter:saturate(.92) brightness(1.05);transform:scale(1.08);will-change:transform;
+    background:
+      radial-gradient(120% 80% at 78% 8%, rgba(31,157,77,.20), transparent 58%),
+      radial-gradient(90% 90% at 96% 92%, rgba(230,167,0,.16), transparent 52%),
+      linear-gradient(180deg,#212e38 0%,#2b3a45 46%,#18222a 100%);
+    background-image:url('assets/bg-vidhana-night.png'),
+      radial-gradient(120% 80% at 78% 8%, rgba(31,157,77,.20), transparent 58%),
+      linear-gradient(180deg,#212e38 0%,#2b3a45 46%,#18222a 100%);
+    background-position:center 28%;background-size:cover;background-repeat:no-repeat;}
+  .hero-wash{position:absolute;inset:0;background:linear-gradient(101deg,rgba(236,234,228,.98) 0%,rgba(236,234,228,.95) 38%,rgba(236,234,228,.62) 70%,rgba(236,234,228,.30) 100%);}
+  .hero-fade{position:absolute;left:0;right:0;bottom:0;height:170px;background:linear-gradient(180deg,rgba(236,234,228,0),var(--paper));}
+  .hero-grid{position:relative;z-index:2;max-width:var(--max);margin:0 auto;padding:64px var(--pad) 48px;
+    display:grid;grid-template-columns:1.02fr .98fr;gap:60px;align-items:center;}
+  .hero h1{font-family:var(--serif);font-weight:600;font-size:clamp(50px,6.4vw,92px);line-height:.93;letter-spacing:-1.5px;margin:0;}
+  .hero .says{font-family:var(--serif);font-weight:600;font-size:clamp(32px,3.8vw,54px);line-height:1;letter-spacing:-.5px;color:var(--red);margin-top:14px;}
+  .hero p.lede{font-size:16px;line-height:1.6;color:var(--ink-2);max-width:430px;margin:24px 0 0;}
+  .bignum{font-family:var(--mono);font-weight:700;font-size:clamp(60px,7.2vw,100px);line-height:.82;letter-spacing:-4px;}
+  .placard{position:absolute;right:22px;bottom:18px;font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--ink-3);
+    background:rgba(249,248,244,.7);backdrop-filter:blur(4px);padding:4px 9px;border-radius:5px;z-index:2;}
+  .compare{position:relative;width:100%;aspect-ratio:4/3;border:1px solid var(--line-2);border-radius:14px;overflow:hidden;
+    cursor:ew-resize;user-select:none;touch-action:none;background:#000;box-shadow:var(--shadow-lg);}
+  .scene{position:absolute;inset:0;background:url('assets/bg-traffic-jam.webp') center/cover,linear-gradient(180deg,#3a3f44,#54585c 55%,#2a2d30);}
+  .anno{position:absolute;font-family:var(--mono);font-size:9.5px;padding:1px 5px;border-radius:2px;font-weight:700;}
+  .entries{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+  @media(max-width:900px){.hero-grid{grid-template-columns:1fr;gap:34px;}.entries{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+<div class="ag-shell">
+  <div data-ag-header></div>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <div class="hero-photo" id="heroPhoto"></div>
+    <div class="hero-wash"></div>
+    <div class="hero-fade"></div>
+    <div class="placard">VIDHANA SOUDHA · BENGALURU</div>
+    <div class="hero-grid">
+      <div>
+        <div data-k class="label" style="margin-bottom:18px;color:var(--ink-3);">Bengaluru moves 6.2M vehicles a day.</div>
+        <h1 data-k>Most of its<br>violations<br>move unseen.</h1>
+        <div data-k class="says">AGASTYA doesn't.</div>
+        <p data-k class="lede">Every frame is detected, calibrated and cryptographically signed at the source — so a violation can be <em>proven</em> in court, not merely claimed.</p>
+
+        <div data-k style="display:flex;align-items:flex-end;gap:20px;margin-top:38px;">
+          <div class="bignum" id="totalNum">0</div>
+          <div class="label" style="padding-bottom:13px;max-width:160px;line-height:1.45;">violations proven across the city grid</div>
+        </div>
+
+        <div data-k style="display:flex;gap:22px;margin-top:16px;flex-wrap:wrap;">
+          <span class="tier"><span class="d" style="background:var(--red)"></span>Tier 3 · high</span>
+          <span class="tier"><span class="d" style="background:var(--amber)"></span>Tier 2 · med</span>
+          <span class="tier"><span class="d" style="background:var(--green)"></span>Tier 1 · low</span>
+        </div>
+
+        <div data-k style="display:flex;gap:14px;margin-top:34px;flex-wrap:wrap;">
+          <a href="dashboard.html" class="btn btn-red">Open the dashboard <span class="arrow">→</span></a>
+          <a href="performance.html" class="btn">See model performance</a>
+        </div>
+      </div>
+
+      <!-- before/after drag -->
+      <div data-k>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:11px;">
+          <span class="label" style="letter-spacing:1.5px;">Before / after AGASTYA — drag</span>
+          <span class="label" style="color:var(--red);animation:agFloat 3s ease-in-out infinite;">⟷ slide</span>
+        </div>
+        <div class="compare" id="compare">
+          <div class="scene">
+            <div style="position:absolute;left:18%;top:42%;width:26%;height:34%;border:1.5px solid var(--red);border-radius:2px;box-shadow:0 0 14px rgba(216,38,28,.55);"></div>
+            <div class="anno" style="left:20%;top:35.5%;background:var(--red);color:#fff;">no-helmet 0.91</div>
+            <div style="position:absolute;left:58%;top:48%;width:22%;height:30%;border:1.5px solid var(--amber);border-radius:2px;box-shadow:0 0 14px rgba(230,167,0,.5);"></div>
+            <div class="anno" style="left:58%;top:41.5%;background:var(--amber);color:var(--ink);">triple-riding 0.87</div>
+            <div style="position:absolute;left:12px;bottom:11px;font-family:var(--mono);font-size:10px;color:#fff;background:rgba(0,0,0,.5);padding:3px 8px;border-radius:3px;backdrop-filter:blur(4px);">◉ AGASTYA — proven &amp; signed</div>
+          </div>
+          <div class="scene" id="beforeLayer" style="filter:grayscale(1) brightness(.62) contrast(1.04);clip-path:inset(0 50% 0 0);">
+            <div style="position:absolute;inset:0;display:flex;align-items:flex-end;padding:12px;"><span style="font-family:var(--mono);font-size:10px;color:#e8e8e2;background:rgba(0,0,0,.5);padding:3px 8px;border-radius:3px;">RAW FEED — Silk Board · unverified</span></div>
+          </div>
+          <div id="divider" style="position:absolute;top:0;bottom:0;width:2px;background:var(--amber);left:50%;margin-left:-1px;pointer-events:none;box-shadow:0 0 12px rgba(230,167,0,.6);">
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:var(--amber);display:flex;align-items:center;justify-content:center;color:var(--ink);font-size:15px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.3);">⟷</div>
+          </div>
+        </div>
+        <!-- model + system numbers: HARDCODED (no perf/system endpoint) -->
+        <div style="display:flex;gap:18px;margin-top:14px;">
+          <div class="metric" style="flex:1;"><div class="v" id="mInf">18.4<span class="u"> ms</span></div><div class="k">avg inference</div></div>
+          <div class="metric" style="flex:1;"><div class="v" id="mThr">54.2<span class="u"> /s</span></div><div class="k">throughput</div></div>
+          <div class="metric" style="flex:1;"><div class="v" id="mAcc" style="color:var(--green)">94<span class="u"> %</span></div><div class="k">accuracy</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ENTER THE SYSTEM ===== -->
+  <section class="ag-section">
+    <div class="ag-folio" data-reveal><span class="num">00</span><span class="name" style="font-size:clamp(20px,2vw,28px)">Enter the system</span><span class="rule"></span></div>
+    <div class="entries">
+      <a href="dashboard.html" data-reveal data-reveal-delay="0" class="card lift toprule" style="border-top-color:var(--red);text-decoration:none;">
+        <div class="label" style="color:var(--red)">01 · Analytics</div>
+        <div style="font-family:var(--serif);font-size:25px;font-weight:600;margin-top:10px;">Dashboard</div>
+        <div style="font-size:13px;color:var(--ink-3);line-height:1.5;margin-top:8px;">Fleet-wide counts, 14-day trend and live integrity ring.</div>
+        <div class="label" style="margin-top:18px;color:var(--ink);display:flex;gap:7px;">Open <span class="arrow">→</span></div>
+      </a>
+      <a href="violations.html" data-reveal data-reveal-delay="80" class="card lift toprule" style="border-top-color:var(--amber);text-decoration:none;">
+        <div class="label" style="color:var(--amber)">02 · Records</div>
+        <div style="font-family:var(--serif);font-size:25px;font-weight:600;margin-top:10px;">Violations</div>
+        <div style="font-size:13px;color:var(--ink-3);line-height:1.5;margin-top:8px;">Filter and page through every signed record.</div>
+        <div class="label" style="margin-top:18px;color:var(--ink);display:flex;gap:7px;">Open <span class="arrow">→</span></div>
+      </a>
+      <a href="performance.html" data-reveal data-reveal-delay="160" class="card lift toprule" style="border-top-color:var(--green);text-decoration:none;">
+        <div class="label" style="color:var(--green)">03 · Model</div>
+        <div style="font-family:var(--serif);font-size:25px;font-weight:600;margin-top:10px;">Performance</div>
+        <div style="font-size:13px;color:var(--ink-3);line-height:1.5;margin-top:8px;">Accuracy, precision, recall, F1 and mAP benchmarks.</div>
+        <div class="label" style="margin-top:18px;color:var(--ink);display:flex;gap:7px;">Open <span class="arrow">→</span></div>
+      </a>
+      <a href="reports.html" data-reveal data-reveal-delay="240" class="card lift toprule" style="border-top-color:var(--ink);text-decoration:none;">
+        <div class="label">04 · Export</div>
+        <div style="font-family:var(--serif);font-size:25px;font-weight:600;margin-top:10px;">Reports</div>
+        <div style="font-size:13px;color:var(--ink-3);line-height:1.5;margin-top:8px;">Build signed CSV evidence packs on demand.</div>
+        <div class="label" style="margin-top:18px;color:var(--ink);display:flex;gap:7px;">Open <span class="arrow">→</span></div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ===== CHAIN OF CUSTODY ===== -->
+  <section class="ag-section" data-reveal style="padding-top:0;">
+    <div class="card" style="display:flex;align-items:center;gap:40px;flex-wrap:wrap;">
+      <div class="label" style="letter-spacing:2px;">Chain of custody</div>
+      <div style="display:flex;gap:38px;flex-wrap:wrap;">
+        <div class="metric"><div class="v" style="font-size:21px;color:var(--green)">100%</div><div class="k">signed at source</div></div>
+        <div class="metric"><div class="v" style="font-size:21px;">0</div><div class="k">tampered records</div></div>
+        <div class="metric"><div class="v" style="font-size:21px;">HMAC-256</div><div class="k">credential algorithm</div></div>
+        <div class="metric"><div class="v" style="font-size:21px;color:var(--amber)">6 STDS</div><div class="k">ISO / NIST / eIDAS</div></div>
+      </div>
+      <a href="verify.html" id="verifyLink" class="btn btn-green" style="margin-left:auto;">VERIFY A RECORD <span class="arrow">→</span></a>
+    </div>
+  </section>
+
+  <div data-ag-footer></div>
+</div>
+
+<script src="agastya.js"></script>
+<script>
+(function(){
+  var A=window.AGASTYA;
+  A.chrome.mount(null);
+
+  // LIVE: total + latest id
+  Promise.all([A.api.stats(), A.api.violations({limit:1,sort:'newest'})]).then(function(res){
+    var total=(res[0].data&&res[0].data.total)||0;
+    var latest=(res[1].data&&res[1].data[0])?res[1].data[0].id:null;
+    A.motion.countUp(document.getElementById('totalNum'), total, 2200);
+    if(latest!=null){ document.getElementById('verifyLink').href='verify.html?id='+latest; }
+  }).catch(function(){ A.chrome.offline(); A.motion.countUp(document.getElementById('totalNum'),0); });
+
+  A.api.metrics().then(function(r){var m=r.data||{};
+    if(m.system){document.getElementById('mInf').innerHTML=m.system.avg_inference_ms+'<span class="u"> ms</span>';
+      document.getElementById('mThr').innerHTML=m.system.throughput_per_sec+'<span class="u"> /s</span>';}
+    if(m.model)document.getElementById('mAcc').innerHTML=Math.round(m.model.accuracy*100)+'<span class="u"> %</span>';
+  }).catch(function(){});
+
+  // hero parallax
+  window.addEventListener('pointermove',function(e){
+    var el=document.getElementById('heroPhoto'); if(!el)return;
+    var dx=e.clientX/innerWidth-.5, dy=e.clientY/innerHeight-.5;
+    el.style.transform='scale(1.08) translate('+(-dx*16).toFixed(1)+'px,'+(-dy*12).toFixed(1)+'px)';
+  });
+
+  // before/after compare drag
+  (function(){
+    var box=document.getElementById('compare'),before=document.getElementById('beforeLayer'),div=document.getElementById('divider'),drag=false;
+    function set(x){var r=box.getBoundingClientRect();var p=Math.max(0,Math.min(100,(x-r.left)/r.width*100));before.style.clipPath='inset(0 '+(100-p).toFixed(1)+'% 0 0)';div.style.left=p.toFixed(1)+'%';}
+    box.addEventListener('pointerdown',function(e){drag=true;set(e.clientX);box.setPointerCapture(e.pointerId);});
+    box.addEventListener('pointermove',function(e){if(drag)set(e.clientX);});
+    box.addEventListener('pointerup',function(){drag=false;});
+  })();
+
+  A.motion.intro();
+})();
+</script>
+</body>
+</html>

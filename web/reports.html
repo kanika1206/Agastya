@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reports — AGASTYA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700&family=Archivo:wght@400;500;600;700;800&family=Spline+Sans+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="agastya.css">
+<style>
+  .rep-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .opt{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  @media(max-width:1000px){.rep-grid{grid-template-columns:1fr;}.opt{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="ag-shell">
+  <div data-ag-header></div>
+
+  <section class="ag-section">
+    <div class="ag-folio" data-reveal>
+      <span class="num">04 · EXPORT</span><span class="name">Reports</span><span class="rule"></span>
+      <span class="aside" id="scope">scope: —</span>
+    </div>
+
+    <div class="rep-grid">
+      <!-- build pack -->
+      <div class="card" data-reveal>
+        <div class="label" style="letter-spacing:1.5px;">Build an evidence pack</div>
+        <p style="font-size:14px;color:var(--ink-2);line-height:1.6;">Select a scope and export. <strong>CSV pulls live records straight from <code>/violations</code></strong> and assembles client-side — no export endpoint required.</p>
+        <div class="opt" style="margin-top:8px;">
+          <div class="field"><label>Type</label><select class="input" id="oType"><option value="">All types</option></select></div>
+          <div class="field"><label>Min conf.</label><input class="input" id="oMin" type="number" step="0.01" min="0" max="1" placeholder="0.00"></div>
+          <div class="field"><label>Sort</label><select class="input" id="oSort"><option value="newest">Newest</option><option value="oldest">Oldest</option></select></div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:18px;flex-wrap:wrap;">
+          <button class="btn btn-red" id="csvBtn">Export CSV ↓</button>
+          <button class="btn" id="pdfBtn" title="no PDF render endpoint yet">Export PDF (stub)</button>
+        </div>
+        <div class="label" id="status" style="margin-top:14px;min-height:16px;"></div>
+      </div>
+
+      <!-- preview -->
+      <div class="card" data-reveal data-reveal-delay="80">
+        <div class="label" style="letter-spacing:1.5px;">Pack summary</div>
+        <div style="display:flex;gap:30px;margin-top:18px;flex-wrap:wrap;">
+          <div class="metric"><div class="v" id="pCount" style="font-size:40px;">—</div><div class="k">records in scope</div></div>
+          <div class="metric"><div class="v" id="pTypes" style="font-size:40px;">—</div><div class="k">violation classes</div></div>
+        </div>
+        <div id="pBreak" style="margin-top:18px;"></div>
+        <div class="label" style="margin-top:16px;color:var(--ink-5);">CSV columns: id, type, confidence, plate, camera_id, captured_at, created_at, content_hash, evidence_root</div>
+      </div>
+    </div>
+  </section>
+
+  <div data-ag-footer></div>
+</div>
+
+<script src="agastya.js"></script>
+<script>
+(function(){
+  var A=window.AGASTYA, F=A.fmt;
+  A.chrome.mount('reports');
+
+  var sel=document.getElementById('oType');
+  Object.keys(A.cfg.VT).forEach(function(k){ var o=document.createElement('option'); o.value=k; o.textContent=F.vtLabel(k); sel.appendChild(o); });
+
+  function scopeParams(){
+    var p={limit:500,sort:document.getElementById('oSort').value};
+    var t=document.getElementById('oType').value; if(t)p.violation_type=t;
+    var m=document.getElementById('oMin').value; if(m)p.min_confidence=m;
+    return p;
+  }
+  function refreshPreview(){
+    var p=scopeParams();
+    document.getElementById('scope').textContent='scope: '+(p.violation_type?F.vtLabel(p.violation_type):'all types')+(p.min_confidence?' · ≥'+Math.round(p.min_confidence*100)+'%':'');
+    A.api.violations(p).then(function(r){
+      var rows=r.data||[], meta=r.meta||{};
+      document.getElementById('pCount').textContent=F.n(meta.total!=null?meta.total:rows.length);
+      var types={}; rows.forEach(function(v){types[v.violation_type]=(types[v.violation_type]||0)+1;});
+      var keys=Object.keys(types).sort(function(a,b){return types[b]-types[a];});
+      document.getElementById('pTypes').textContent=keys.length;
+      document.getElementById('pBreak').innerHTML=keys.map(function(k){
+        var c=F.tierColor(F.vtTier(k));
+        return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line-3);font-size:13px;"><span><span class="d" style="width:8px;height:8px;border-radius:50%;background:'+c+';display:inline-block;margin-right:8px;"></span>'+F.vtLabel(k)+'</span><span class="mono" style="font-family:var(--mono);font-weight:600;">'+types[k]+'</span></div>';
+      }).join('');
+      window.__rows=rows;
+    }).catch(function(){ A.chrome.offline(); document.getElementById('pCount').textContent='—'; document.getElementById('pBreak').innerHTML='<div class="ag-error">Backend unreachable on '+A.cfg.base+'</div>'; });
+  }
+  ['oType','oMin','oSort'].forEach(function(id){ document.getElementById(id).addEventListener('change',refreshPreview); });
+
+  function csvCell(v){ if(v==null)return ''; v=String(v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
+  document.getElementById('csvBtn').addEventListener('click',function(){
+    var st=document.getElementById('status'); st.textContent='assembling…';
+    A.api.violations(scopeParams()).then(function(r){
+      var rows=r.data||[];
+      if(!rows.length){ st.textContent='no records in scope.'; return; }
+      var cols=['id','violation_type','confidence','plate','camera_id','captured_at','created_at','content_hash','evidence_root'];
+      var lines=[cols.join(',')].concat(rows.map(function(v){ return cols.map(function(c){return csvCell(v[c]);}).join(','); }));
+      var blob=new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8;'});
+      var a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download='agastya-evidence-'+new Date().toISOString().slice(0,10)+'.csv';
+      a.click(); URL.revokeObjectURL(a.href);
+      st.textContent='exported '+rows.length+' records · '+a.download;
+    }).catch(function(){ st.textContent=''; st.innerHTML='<span style="color:var(--red)">export failed — backend unreachable.</span>'; });
+  });
+  document.getElementById('pdfBtn').addEventListener('click',function(){
+    document.getElementById('status').innerHTML='<span style="color:var(--amber)">Signed-PDF render is not built in the backend yet — use CSV for now.</span>';
+  });
+
+  refreshPreview();
+  A.motion.intro();
+})();
+</script>
+</body>
+</html>

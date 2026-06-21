@@ -33,3 +33,17 @@ def test_config_is_frozen():
     cfg = PipelineConfig(profile=VRAMProfile.FULL)
     with pytest.raises(ValidationError):
         cfg.detector = "tampered"
+
+
+def test_restore_defaults_are_passthrough_cpu():
+    cfg = PipelineConfig()
+    assert cfg.restore_backend == "passthrough"
+    assert cfg.nafnet_weights is None
+    assert cfg.restore_device == "cpu"
+
+
+def test_restore_fields_are_settable():
+    cfg = PipelineConfig(restore_backend="nafnet", nafnet_weights="/w/best.pt", restore_device="cuda")
+    assert cfg.restore_backend == "nafnet"
+    assert cfg.nafnet_weights == "/w/best.pt"
+    assert cfg.restore_device == "cuda"

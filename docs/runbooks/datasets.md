@@ -24,13 +24,19 @@ class IDs into the unified 5-class order (`agastya/schema/classes.py`) via
 | `with_helmet` / `helmet`     | helmet (0) |
 | `without_helmet` / `no-helmet` | no-helmet (1) |
 | `number_plate` / `number-plate` | license-plate (2) |
-| `Triple_riding`              | triple-riding (3) |
-| `motorcycle` / `bike`        | motorcycle (4) |
+| `motorcycle` / `bike`        | motorcycle (3) |
+| `person`                     | person (4) |
 
-> **⚠ triple-riding is scarce.** A full assemble of the current raw data yields
-> ~20.3k images but only **3 `triple-riding` instances** (all from the 50-image
-> Triple Ride source). The flagship class is under-represented — acquire more
-> triple-riding data before trusting baseline metrics on class 3.
+> **triple-riding is a RULE, not a detected class.** Free datasets carry almost
+> no dedicated `triple-riding` boxes (triple=3, tvd2=5 instances), so learning it
+> end-to-end is infeasible. Instead the detector learns `motorcycle` + `person`,
+> and `agastya/stages/associate/rules.py` flags triple-riding when ≥3 person
+> boxes overlap one motorcycle (`is_triple_riding`). Source `Triple_riding` /
+> `Triple riding` labels are dropped during assemble.
+>
+> Full assemble of current raw data → **22,736 images**; class instances:
+> helmet 43,655, no-helmet 20,189, license-plate 20,135, motorcycle 26,579,
+> person 2,235 (person mostly from the overload source).
 
 Some Triple Ride labels are exported as **segmentation polygons** rather than
 boxes; the builder converts each polygon to its bounding box automatically.
@@ -88,12 +94,14 @@ India-specific needed.
 data/raw/
   triple/     # detection source 1a (YOLO, with data.yaml)
   safety/     # detection source 1b (YOLO, with data.yaml)
+  tvd2/       # detection source — no-helmet (triple-riding dropped)
+  overload/   # detection source — motorcycle + person (feeds rider-count rule)
   ocr/        # Kaggle Indian vehicle (plate OCR)
   deblur/     # Kaggle GoPro (restoration)
 ```
 
-`scripts/build_dataset.py` discovers detection images under `data/raw/triple/`
-and `data/raw/safety/`, remaps labels to the 5-class schema, and assembles a
+`scripts/build_dataset.py` discovers detection images under `data/raw/{triple,
+safety,tvd2,overload}/`, remaps labels to the 5-class schema, and assembles a
 unified YOLO dataset:
 
 ```bash

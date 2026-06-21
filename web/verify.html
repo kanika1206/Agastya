@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verify — AGASTYA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700&family=Archivo:wght@400;500;600;700;800&family=Spline+Sans+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="agastya.css">
+<style>
+  .verify-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+  .seal{display:flex;align-items:center;justify-content:center;width:84px;height:84px;border-radius:50%;font-size:34px;font-weight:700;color:#fff;}
+  .vrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line-3);}
+  @media(max-width:1000px){.verify-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="ag-shell">
+  <div data-ag-header></div>
+
+  <section class="ag-section">
+    <div class="ag-folio" data-reveal>
+      <span class="num">CHAIN OF CUSTODY</span><span class="name">Verify a record</span><span class="rule"></span>
+    </div>
+
+    <div class="verify-grid">
+      <div class="card" data-reveal>
+        <div class="label" style="letter-spacing:1.5px;">Record lookup</div>
+        <p style="font-size:14px;color:var(--ink-2);line-height:1.6;max-width:42ch;">Enter a record ID to re-derive its hash-linked audit chain and re-check the credential signature against the server's signing key. Nothing is trusted — everything is recomputed.</p>
+        <form id="vform" style="display:flex;gap:10px;margin-top:8px;">
+          <input class="input" id="vid" type="number" min="1" placeholder="record id, e.g. 1" style="max-width:200px;">
+          <button class="btn btn-red btn-sm" type="submit">Verify →</button>
+        </form>
+        <div class="label" style="margin-top:14px;color:var(--ink-5);">Algorithm: HMAC-SHA256 · append-only Merkle-linked ledger</div>
+      </div>
+
+      <div class="card" data-reveal data-reveal-delay="80" id="result">
+        <div class="label" style="color:var(--ink-5);">Awaiting a record id…</div>
+      </div>
+    </div>
+  </section>
+
+  <div data-ag-footer></div>
+</div>
+
+<script src="agastya.js"></script>
+<script>
+(function(){
+  var A=window.AGASTYA, F=A.fmt;
+  A.chrome.mount(null);
+  var u=new URLSearchParams(location.search);
+  var pre=u.get('id');
+  if(pre) document.getElementById('vid').value=pre;
+
+  document.getElementById('vform').addEventListener('submit',function(e){ e.preventDefault(); run(document.getElementById('vid').value); });
+
+  function vrow(ok,label,note){
+    var col=ok===true?'var(--green)':ok===false?'var(--red)':'var(--ink-4)';
+    var mark=ok===true?'✓':ok===false?'✗':'—';
+    return '<div class="vrow"><span style="width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:'+col+';color:#fff;font-weight:700;">'+mark+'</span>'+
+      '<div><div style="font-size:14px;">'+label+'</div>'+(note?'<div class="label" style="color:var(--ink-5)">'+note+'</div>':'')+'</div></div>';
+  }
+
+  function run(id){
+    if(!id){ return; }
+    var box=document.getElementById('result');
+    box.innerHTML='<div class="label">verifying record #'+id+'…</div>';
+    A.api.verify(id).then(function(r){
+      var d=r.data||{};
+      var allGood=d.audit_chain_valid && (d.credential_signature_valid!==false);
+      var col=allGood?'var(--green)':'var(--red)';
+      box.innerHTML=
+        '<div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;">'+
+          '<div class="seal" style="background:'+col+';">'+(allGood?'✓':'✗')+'</div>'+
+          '<div><div class="label">Record #'+id+'</div><div style="font-family:var(--serif);font-size:24px;">'+(allGood?'Tamper-evident & intact':'Verification failed')+'</div></div>'+
+        '</div>'+
+        vrow(d.audit_chain_valid,'Audit chain intact','recomputed hash links match')+
+        vrow(d.credential_signature_valid,'Credential signature valid', d.signing_key_configured?'checked against signing key':'signing key not configured — check skipped')+
+        vrow(d.signing_key_configured,'Signing key configured', d.signing_key_configured?'server holds AGASTYA_SIGNING_KEY':'set AGASTYA_SIGNING_KEY on server')+
+        '<a href="detail.html?id='+id+'" class="btn btn-sm" style="margin-top:16px;">View full record →</a>';
+    }).catch(function(err){
+      box.innerHTML='<div class="ag-error">Record #'+id+' not found, or backend unreachable on '+A.cfg.base+'.</div>';
+      A.chrome.offline();
+    });
+  }
+
+  if(pre) run(pre);
+  A.motion.intro();
+})();
+</script>
+</body>
+</html>

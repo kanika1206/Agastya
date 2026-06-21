@@ -12,4 +12,14 @@ data/processed/
 weights/
 runs/
 *.pt
+*.pth
 *.onnx
+*.db
+*.sqlite
+*.sqlite3
+models/
+.env
+.env.*
+!.env.example
+*.pem
+*.key

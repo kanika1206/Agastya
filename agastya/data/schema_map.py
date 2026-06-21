@@ -6,7 +6,6 @@ _TRIPLE_MAP: dict[str, str] = {
     "with_helmet": "helmet",
     "without_helmet": "no-helmet",
     "number_plate": "license-plate",
-    "Triple_riding": "triple-riding",
     "motorcycle": "motorcycle",
 }
 
@@ -17,9 +16,20 @@ _SAFETY_MAP: dict[str, str] = {
     "bike": "motorcycle",
 }
 
+_TVD2_MAP: dict[str, str] = {
+    "No helmet": "no-helmet",
+}
+
+_OVERLOAD_MAP: dict[str, str] = {
+    "motorcycle": "motorcycle",
+    "person": "person",
+}
+
 _SOURCES: dict[str, dict[str, str]] = {
     "triple": _TRIPLE_MAP,
     "safety": _SAFETY_MAP,
+    "tvd2": _TVD2_MAP,
+    "overload": _OVERLOAD_MAP,
 }
 
 

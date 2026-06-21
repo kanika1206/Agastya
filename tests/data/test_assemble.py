@@ -41,8 +41,8 @@ def test_assemble_dataset_copies_images_and_remaps_labels(tmp_path):
     label_out = out / "labels" / "train" / "triple_a.txt"
     assert image_out.read_bytes() == b"\xff\xd8\xff"
     lines = label_out.read_text().splitlines()
-    assert lines[0].startswith("3 ")  # Triple_riding -> triple-riding
-    assert lines[1].startswith("4 ")  # motorcycle -> motorcycle
+    assert len(lines) == 1  # Triple_riding dropped
+    assert lines[0].startswith("3 ")  # motorcycle -> motorcycle (id 3)
     assert (out / "data.yaml").exists()
 
 
@@ -57,9 +57,9 @@ def test_remap_label_text_remaps_triple_class_ids():
     text = "0 0.5 0.5 0.2 0.2\n1 0.1 0.1 0.1 0.1\n3 0.4 0.4 0.3 0.3\n"
     remapped = remap_label_text(text, source="triple", src_names=src_names)
     lines = remapped.splitlines()
-    assert lines[0].startswith("3 ")  # Triple_riding -> triple-riding (id 3)
-    assert lines[1].startswith("4 ")  # motorcycle -> motorcycle (id 4)
-    assert lines[2].startswith("0 ")  # with_helmet -> helmet (id 0)
+    assert len(lines) == 2  # Triple_riding dropped
+    assert lines[0].startswith("3 ")  # motorcycle -> motorcycle (id 3)
+    assert lines[1].startswith("0 ")  # with_helmet -> helmet (id 0)
 
 
 def test_remap_label_text_drops_unmapped_classes():
@@ -68,7 +68,7 @@ def test_remap_label_text_drops_unmapped_classes():
     remapped = remap_label_text(text, source="triple", src_names=src_names)
     lines = remapped.splitlines()
     assert len(lines) == 1
-    assert lines[0].startswith("4 ")  # motorcycle kept, background dropped
+    assert lines[0].startswith("3 ")  # motorcycle kept, background dropped
 
 
 def test_remap_label_text_converts_polygon_to_bbox():
@@ -76,7 +76,7 @@ def test_remap_label_text_converts_polygon_to_bbox():
     text = "0 0.2 0.3 0.6 0.3 0.6 0.7 0.2 0.7\n"
     remapped = remap_label_text(text, source="triple", src_names=src_names)
     parts = remapped.split()
-    assert parts[0] == "4"  # motorcycle -> id 4
+    assert parts[0] == "3"  # motorcycle -> id 3
     assert parts[1] == "0.400000"  # cx from polygon extremes
     assert parts[3] == "0.400000"  # width
 

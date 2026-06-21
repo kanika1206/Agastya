@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Record — AGASTYA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700&family=Archivo:wght@400;500;600;700;800&family=Spline+Sans+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="agastya.css">
+<style>
+  .det{display:grid;grid-template-columns:1.05fr .95fr;gap:24px;}
+  .evimg{width:100%;aspect-ratio:4/3;border-radius:var(--r);border:1px solid var(--line-2);object-fit:cover;background:#222;}
+  .kv{display:grid;grid-template-columns:130px 1fr;gap:6px 16px;font-size:13px;}
+  .kv dt{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--ink-4);text-transform:uppercase;padding-top:3px;}
+  .kv dd{margin:0;font-family:var(--mono);word-break:break-all;}
+  .chain{position:relative;margin-top:8px;}
+  .chain .node{display:grid;grid-template-columns:26px 1fr;gap:12px;padding-bottom:18px;position:relative;}
+  .chain .node:not(:last-child)::before{content:"";position:absolute;left:12px;top:24px;bottom:-4px;width:2px;background:var(--line-2);}
+  .chain .dot{width:24px;height:24px;border-radius:50%;background:var(--green-soft);border:2px solid var(--green);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;color:var(--green);font-weight:700;z-index:1;}
+  @media(max-width:1000px){.det{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="ag-shell">
+  <div data-ag-header></div>
+
+  <section class="ag-section">
+    <div style="margin-bottom:16px;"><a href="violations.html" class="label" style="color:var(--red);text-decoration:none;">← back to console</a></div>
+    <div class="ag-folio" data-reveal>
+      <span class="num" id="recId">RECORD —</span><span class="name" id="recType">—</span><span class="rule"></span>
+      <span class="aside" id="recTier"></span>
+    </div>
+
+    <div class="det">
+      <!-- evidence -->
+      <div data-reveal>
+        <div style="position:relative;">
+          <img id="evimg" class="evimg" alt="evidence frame">
+          <div id="imgFallback" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;flex-direction:column;gap:8px;" class="card">
+            <div class="label">No evidence image bound</div>
+            <div class="label" style="color:var(--ink-5);">(record has no image_path)</div>
+          </div>
+        </div>
+        <div class="label" style="margin-top:10px;">Evidence frame · served from /violations/{id}/image</div>
+      </div>
+
+      <!-- meta + verify -->
+      <div data-reveal data-reveal-delay="80">
+        <div class="card">
+          <div class="label" style="letter-spacing:1.5px;margin-bottom:14px;">Record metadata</div>
+          <dl class="kv" id="meta"><dt>Loading…</dt><dd></dd></dl>
+        </div>
+
+        <div class="card" style="margin-top:18px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div class="label" style="letter-spacing:1.5px;">Cryptographic verification</div>
+            <button class="btn btn-green btn-sm" id="verifyBtn">RUN VERIFY →</button>
+          </div>
+          <div id="verifyOut" style="margin-top:14px;">
+            <div class="label" style="color:var(--ink-5);">Press “run verify” to re-check chain &amp; credential against the live signing key.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- audit chain -->
+    <div class="card" data-reveal style="margin-top:22px;">
+      <div class="label" style="letter-spacing:1.5px;margin-bottom:16px;">Audit chain — append-only ledger</div>
+      <div class="chain" id="chain"><div class="skeleton" style="height:120px;"></div></div>
+    </div>
+  </section>
+
+  <div data-ag-footer></div>
+</div>
+
+<script src="agastya.js"></script>
+<script>
+(function(){
+  var A=window.AGASTYA, F=A.fmt;
+  A.chrome.mount('violations');
+  var u=new URLSearchParams(location.search);
+  var id=u.get('id');
+  // carried from console row (bundle endpoint omits these)
+  var type=u.get('type')||'', conf=parseFloat(u.get('conf')), plate=u.get('plate')||'', cam=u.get('cam')||'';
+
+  if(!id){ document.getElementById('recType').textContent='no record id'; return; }
+
+  // header from query params
+  document.getElementById('recId').textContent='RECORD #'+id;
+  if(type){
+    document.getElementById('recType').textContent=F.vtLabel(type);
+    var tier=F.vtTier(type),c=F.tierColor(tier);
+    document.getElementById('recTier').innerHTML='<span class="chip" style="border-color:'+c+';color:'+c+';">'+F.tierLabel(tier)+(F.isLive(type)?'':' · SIM')+'</span>';
+  }
+
+  // evidence image
+  var img=document.getElementById('evimg');
+  img.src=A.api.imageURL(id);
+  img.onerror=function(){ img.style.display='none'; var fb=document.getElementById('imgFallback'); fb.style.display='flex'; };
+
+  // bundle
+  A.api.violation(id).then(function(r){
+    var b=r.data||{};
+    var meta=document.getElementById('meta');
+    var cred=b.credential||{};
+    var man=cred.manifest||{};
+    // API is source of truth; query params only seed the instant paint
+    if(man.violation_type){ type=man.violation_type; }
+    if(man.confidence!=null){ conf=man.confidence; }
+    if(man.plate!=null){ plate=man.plate; }
+    if(man.camera_id!=null){ cam=man.camera_id; }
+    // upgrade header now that authoritative type is known
+    if(type){
+      document.getElementById('recType').textContent=F.vtLabel(type);
+      var tr=F.vtTier(type),tc=F.tierColor(tr);
+      document.getElementById('recTier').innerHTML='<span class="chip" style="border-color:'+tc+';color:'+tc+';">'+F.tierLabel(tr)+(F.isLive(type)?'':' · SIM')+'</span>';
+    }
+    var rows=[
+      ['Type', type?F.vtLabel(type):'—'],
+      ['Confidence', (conf==null||isNaN(conf))?'—':'<span style="color:'+F.confColor(conf)+';font-weight:600;">'+Math.round(conf*100)+'%</span>'],
+      ['Plate', plate||'—'],
+      ['Camera', cam||'—'],
+      ['Captured', F.dateTime(man.timestamp||b.created_at)],
+      ['Committed', F.dateTime(b.created_at)],
+      ['Content hash', '<span title="'+(b.content_hash||'')+'">'+F.hash(b.content_hash,24)+'</span>'],
+      ['Evidence root', '<span title="'+(b.evidence_root||'')+'">'+F.hash(b.evidence_root,24)+'</span>'],
+    ];
+    Object.keys(cred).forEach(function(k){
+      if(k==='manifest') return; // fields already surfaced above
+      var val=typeof cred[k]==='object'?JSON.stringify(cred[k]):String(cred[k]);
+      rows.push(['cred·'+k, val.length>40?F.hash(val,40):val]);
+    });
+    var mv=man.model_versions||{};
+    Object.keys(mv).forEach(function(k){ rows.push(['model·'+k, mv[k]]); });
+    meta.innerHTML=rows.map(function(p){return '<dt>'+p[0]+'</dt><dd>'+p[1]+'</dd>';}).join('');
+
+    // chain
+    var chain=document.getElementById('chain');
+    var entries=b.audit_chain||[];
+    if(!entries.length){ chain.innerHTML='<div class="ag-empty">No audit entries.</div>'; return; }
+    chain.innerHTML=entries.map(function(e){
+      return '<div class="node"><div class="dot">'+e.seq+'</div><div>'+
+        '<div style="font-family:var(--serif);font-size:17px;">'+e.event+'</div>'+
+        '<div class="label" style="margin-top:4px;">entry '+F.hash(e.entry_hash,20)+'</div>'+
+        '<div class="label" style="color:var(--ink-5);">prev '+F.hash(e.prev_hash,20)+'</div>'+
+      '</div></div>';
+    }).join('');
+  }).catch(function(){
+    A.chrome.offline();
+    document.getElementById('meta').innerHTML='<dt class="ag-error" style="grid-column:1/3;color:var(--red)">Record not found / backend unreachable.</dt>';
+    document.getElementById('chain').innerHTML='<div class="ag-error">unavailable</div>';
+  });
+
+  // verify
+  document.getElementById('verifyBtn').addEventListener('click',function(){
+    var out=document.getElementById('verifyOut');
+    out.innerHTML='<div class="label">verifying…</div>';
+    A.api.verify(id).then(function(r){
+      var d=r.data||{};
+      function row(ok,label,note){
+        var col=ok===true?'var(--green)':ok===false?'var(--red)':'var(--ink-4)';
+        var mark=ok===true?'✓':ok===false?'✗':'—';
+        return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line-3);">'+
+          '<span style="width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:'+col+';color:#fff;font-weight:700;font-size:12px;">'+mark+'</span>'+
+          '<div><div style="font-size:13px;">'+label+'</div>'+(note?'<div class="label" style="color:var(--ink-5)">'+note+'</div>':'')+'</div></div>';
+      }
+      out.innerHTML=
+        row(d.audit_chain_valid,'Audit chain intact','hash-linked, append-only')+
+        row(d.credential_signature_valid,'Credential signature valid', d.signing_key_configured?'verified against signing key':'signing key not configured on server')+
+        row(d.signing_key_configured,'Signing key configured', d.signing_key_configured?'server holds AGASTYA_SIGNING_KEY':'set AGASTYA_SIGNING_KEY to enable signature check');
+    }).catch(function(){ out.innerHTML='<div class="ag-error">verify failed — backend unreachable.</div>'; });
+  });
+
+  A.motion.intro();
+})();
+</script>
+</body>
+</html>

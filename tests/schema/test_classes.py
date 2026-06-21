@@ -8,8 +8,8 @@ def test_five_classes_in_fixed_order():
         "helmet",
         "no-helmet",
         "license-plate",
-        "triple-riding",
         "motorcycle",
+        "person",
     )
 
 
