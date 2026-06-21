@@ -1,81 +1,88 @@
 # AGASTYA Dataset Acquisition Runbook
 
-This runbook covers acquiring the three source datasets that feed the unified
-AGASTYA YOLO schema. **No dataset downloads automatically.** The download
-script (`scripts/download_datasets.sh`) is a dry-run by default and only the
-Kaggle ANPR set can be fetched without manual registration.
+Lean, instant-download dataset plan for the vertical slice — no registration
+walls, no multi-day pulls. One dataset per slice task.
 
-## Sources
+| # | Source | Task | Gives | Auth |
+|---|--------|------|-------|------|
+| 1 | Roboflow **Triple Ride Detection** | detection | `with_helmet`, `without_helmet`, `number_plate`, `Triple_riding` | Roboflow export URL |
+| 2 | Kaggle **Indian vehicle** (`saisirishan/...`) | plate OCR | plate crops + (ideally) plate text | Kaggle CLI |
+| 3 | Kaggle **GoPro deblur** | NAFNet restoration | paired sharp/blurry | Kaggle CLI |
 
-### 1. IDD / IDD-Detection (Indian Driving Dataset)
+Detection baseline (Plan 1) uses **dataset 1 only**. Datasets 2 (OCR, Plan 3)
+and 3 (restoration, Plan 2) feed later plans.
 
-- Source: https://idd.insaan.iiit.ac.in/
-- Access: **manual registration required**. Create an account, accept the
-  research-use terms, and download the IDD-Detection archive by hand. There is
-  no public direct-download URL and no automated fetch.
-- Motorcycle-violation derivative: the work in **arXiv:2204.08364** provides
-  helmet / no-helmet and trapezium (rider-region) labels derived from IDD-style
-  imagery. Reuse those annotations for the helmet and rider classes rather than
-  re-labelling from scratch.
-- Unified classes contributed: `motorcycle`, `rider`, `person`, `car`,
-  `truck`, `bus`, `auto-rickshaw` (see `agastya/data/schema_map.py`).
+## Dataset 1 — Roboflow Triple Ride Detection
 
-### 2. AI City Challenge 2024 — Track 5 (Helmet Violation Detection)
+Already in YOLO format → maps straight to our 4-class schema via
+`agastya/data/schema_map.py`:
 
-- Source: https://www.aicitychallenge.org/
-- Access: **request access / approval required**. Register for the challenge
-  edition, agree to the data-use agreement, and download after approval. Cannot
-  be auto-fetched.
-- Unified classes contributed: `motorcycle` (from `motorbike`), `helmet`,
-  `no-helmet` (from the `D*Helmet` / `P*Helmet` driver/passenger labels).
+| Roboflow label | AGASTYA class |
+|----------------|---------------|
+| `with_helmet`    | helmet |
+| `without_helmet` | no-helmet |
+| `number_plate`   | license-plate |
+| `Triple_riding`  | triple-riding |
 
-### 3. Indian ANPR / License-Plate set (Kaggle)
+Get the export URL:
+1. Open the dataset on Roboflow, sign in.
+2. **Download Dataset** → format **YOLOv8 / YOLO** → **show download code** →
+   copy the `curl` link (contains `?key=...`).
+3. Export to env and run the gated script:
+   ```bash
+   export ROBOFLOW_URL="https://app.roboflow.com/ds/XXXX?key=YYYY"
+   bash scripts/download_datasets.sh --confirm
+   ```
+   Lands under `data/raw/roboflow/` with `data.yaml` + `train/valid/test`
+   `images/` + `labels/`.
 
-- Source: Kaggle, e.g. `andrewmvd/car-plate-detection` and related
-  indian-license-plate datasets.
-- Access: **Kaggle CLI**. Install `kaggle`, place your API token at
-  `~/.kaggle/kaggle.json` (chmod 600), then the download script can fetch it
-  with `--confirm`.
-- Unified class contributed: `license-plate`.
+**On download, confirm the exact Roboflow class names** (read its `data.yaml`).
+If they differ from the four above, tell me and I update `schema_map.py`.
+
+## Dataset 2 — Kaggle Indian vehicle (plate OCR)
+
+```bash
+export OCR_SLUG="saisirishan/indian-vehicle-dataset"   # confirm exact slug
+bash scripts/download_datasets.sh --confirm
+```
+**Confirm it includes plate-number text**, not just boxes. If boxes-only: skip
+it, crop plates from dataset 1, and run PARSeq pretrained — drops us to 2
+datasets.
+
+## Dataset 3 — Kaggle GoPro deblur
+
+```bash
+export DEBLUR_SLUG="<owner>/<gopro-deblur-slug>"   # set the Kaggle mirror slug
+bash scripts/download_datasets.sh --confirm
+```
+Standard paired sharp/blurry benchmark for NAFNet. Generic blur — nothing
+India-specific needed.
+
+## Kaggle CLI setup (datasets 2 and 3)
+
+1. `pip install kaggle`
+2. kaggle.com → avatar → **Settings** → **API** → **Create New Token** →
+   downloads `kaggle.json`.
+3. ```bash
+   mkdir -p ~/.kaggle
+   mv ~/Downloads/kaggle.json ~/.kaggle/kaggle.json
+   chmod 600 ~/.kaggle/kaggle.json
+   ```
+4. Verify: `kaggle datasets list`.
 
 ## On-disk layout
 
-After acquisition, place raw data under `AGASTYA_DATA_ROOT` (default
-`data/raw`):
-
 ```
 data/raw/
-  idd/      # IDD-Detection images + annotations (+ arXiv:2204.08364 helmet labels)
-  aicity/   # AI City Track 5 images + annotations
-  anpr/     # Kaggle license-plate images + annotations
+  roboflow/   # detection (YOLO format, with data.yaml)
+  ocr/        # Kaggle Indian vehicle (plate OCR)
+  deblur/     # Kaggle GoPro (restoration)
 ```
 
-`scripts/build_dataset.py` discovers images under each `data/raw/{source}/`
-subtree.
+`scripts/build_dataset.py` discovers the detection images under
+`data/raw/roboflow/`.
 
-## Running the download script
+## Licensing
 
-Dry run (default, no network):
-
-```bash
-bash scripts/download_datasets.sh
-```
-
-Fetch the Kaggle ANPR set (requires `~/.kaggle/kaggle.json`):
-
-```bash
-bash scripts/download_datasets.sh --confirm
-```
-
-`AGASTYA_DATA_ROOT` overrides the target root.
-
-## Licensing / usage terms
-
-- **IDD**: research-use license accepted at registration. Respect the
-  non-commercial / attribution terms stated on the IDD site. The
-  arXiv:2204.08364 derivative carries its own terms — cite the paper.
-- **AI City Track 5**: bound by the challenge data-use agreement. Typically
-  research-only; do not redistribute the raw imagery.
-- **Kaggle ANPR**: check the specific dataset's license field on Kaggle
-  (varies by uploader). Confirm commercial vs. non-commercial before any
-  downstream redistribution.
+Check each dataset's license on its Roboflow / Kaggle page before any
+redistribution. Community datasets vary; most are research/non-commercial.
