@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from agastya.data.data_yaml import write_data_yaml
+from agastya.data.assemble import assemble_dataset, discover_images
 from agastya.data.manifest import build_manifest
 
 
@@ -16,32 +16,15 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def discover_images(raw_root: Path) -> list[tuple[str, str]]:
-    entries: list[tuple[str, str]] = []
-    for source in ("triple", "safety"):
-        source_dir = raw_root / source
-        if not source_dir.exists():
-            continue
-        for image_path in source_dir.rglob("*.jpg"):
-            entries.append((source, str(image_path)))
-    return entries
-
-
 def main() -> None:
     args = parse_args()
-    entries = discover_images(args.raw_root)
-    manifest = build_manifest(entries, val_fraction=args.val_fraction)
-    print(f"discovered {len(manifest)} images across sources")
     if args.dry_run:
+        manifest = build_manifest(discover_images(args.raw_root), val_fraction=args.val_fraction)
+        print(f"discovered {len(manifest)} images across sources")
         print("dry run: no files written")
         return
-    args.out_root.mkdir(parents=True, exist_ok=True)
-    write_data_yaml(
-        args.out_root / "data.yaml",
-        root=args.out_root,
-        train_dir="images/train",
-        val_dir="images/val",
-    )
+    count = assemble_dataset(args.raw_root, args.out_root, val_fraction=args.val_fraction)
+    print(f"assembled {count} images -> {args.out_root}")
     print(f"wrote {args.out_root / 'data.yaml'}")
 
 

@@ -5,24 +5,35 @@ walls, no multi-day pulls. One dataset per slice task.
 
 | # | Source | Task | Gives | Auth |
 |---|--------|------|-------|------|
-| 1 | Roboflow **Triple Ride Detection** | detection | `with_helmet`, `without_helmet`, `number_plate`, `Triple_riding` | Roboflow export URL |
+| 1a | Roboflow **Triple Ride Detection** (50 imgs) | detection | `with_helmet`, `without_helmet`, `number_plate`, `Triple_riding`, `motorcycle` | Roboflow export URL |
+| 1b | Roboflow **Helmet + Number Plate (Motorbike Safety) v3** (20,287 imgs) | detection | `helmet`, `no-helmet`, `number-plate`, `bike` | Roboflow export URL |
 | 2 | Kaggle **Indian vehicle** (`saisirishan/...`) | plate OCR | plate crops + (ideally) plate text | Kaggle CLI |
 | 3 | Kaggle **GoPro deblur** | NAFNet restoration | paired sharp/blurry | Kaggle CLI |
 
-Detection baseline (Plan 1) uses **dataset 1 only**. Datasets 2 (OCR, Plan 3)
-and 3 (restoration, Plan 2) feed later plans.
+Detection baseline (Plan 1) merges **sources 1a + 1b** into one 5-class set.
+Datasets 2 (OCR, Plan 3) and 3 (restoration, Plan 2) feed later plans.
 
-## Dataset 1 — Roboflow Triple Ride Detection
+## Detection sources — 5-class schema
 
-Already in YOLO format → maps straight to our 4-class schema via
+Both sources are YOLO format. `scripts/build_dataset.py` remaps each source's
+class IDs into the unified 5-class order (`agastya/schema/classes.py`) via
 `agastya/data/schema_map.py`:
 
-| Roboflow label | AGASTYA class |
-|----------------|---------------|
-| `with_helmet`    | helmet |
-| `without_helmet` | no-helmet |
-| `number_plate`   | license-plate |
-| `Triple_riding`  | triple-riding |
+| Source label | AGASTYA class (id) |
+|--------------|--------------------|
+| `with_helmet` / `helmet`     | helmet (0) |
+| `without_helmet` / `no-helmet` | no-helmet (1) |
+| `number_plate` / `number-plate` | license-plate (2) |
+| `Triple_riding`              | triple-riding (3) |
+| `motorcycle` / `bike`        | motorcycle (4) |
+
+> **⚠ triple-riding is scarce.** A full assemble of the current raw data yields
+> ~20.3k images but only **3 `triple-riding` instances** (all from the 50-image
+> Triple Ride source). The flagship class is under-represented — acquire more
+> triple-riding data before trusting baseline metrics on class 3.
+
+Some Triple Ride labels are exported as **segmentation polygons** rather than
+boxes; the builder converts each polygon to its bounding box automatically.
 
 Get the export URL:
 1. Open the dataset on Roboflow, sign in.
@@ -33,11 +44,12 @@ Get the export URL:
    export ROBOFLOW_URL="https://app.roboflow.com/ds/XXXX?key=YYYY"
    bash scripts/download_datasets.sh --confirm
    ```
-   Lands under `data/raw/roboflow/` with `data.yaml` + `train/valid/test`
+   Extract each export to its own dir: `data/raw/triple/` (source 1a) and
+   `data/raw/safety/` (source 1b), each with `data.yaml` + `train/valid/test`
    `images/` + `labels/`.
 
-**On download, confirm the exact Roboflow class names** (read its `data.yaml`).
-If they differ from the four above, tell me and I update `schema_map.py`.
+**On download, confirm the exact Roboflow class names** (read each `data.yaml`).
+If they differ from the mapping above, tell me and I update `schema_map.py`.
 
 ## Dataset 2 — Kaggle Indian vehicle (plate OCR)
 
@@ -74,13 +86,31 @@ India-specific needed.
 
 ```
 data/raw/
-  roboflow/   # detection (YOLO format, with data.yaml)
+  triple/     # detection source 1a (YOLO, with data.yaml)
+  safety/     # detection source 1b (YOLO, with data.yaml)
   ocr/        # Kaggle Indian vehicle (plate OCR)
   deblur/     # Kaggle GoPro (restoration)
 ```
 
-`scripts/build_dataset.py` discovers the detection images under
-`data/raw/roboflow/`.
+`scripts/build_dataset.py` discovers detection images under `data/raw/triple/`
+and `data/raw/safety/`, remaps labels to the 5-class schema, and assembles a
+unified YOLO dataset:
+
+```bash
+PYTHONPATH=. python3 scripts/build_dataset.py \
+  --raw-root data/raw --out-root data/processed --val-fraction 0.2
+# --dry-run prints the discovered image count without writing
+```
+
+Output layout (train/val split assigned deterministically by image-path hash,
+filenames prefixed with their source to avoid collisions):
+
+```
+<out-root>/
+  images/{train,val}/<source>_<name>.jpg
+  labels/{train,val}/<source>_<name>.txt
+  data.yaml   # path/train/val/nc=5/names
+```
 
 ## Licensing
 

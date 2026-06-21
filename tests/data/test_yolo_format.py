@@ -4,9 +4,24 @@ from agastya.data.yolo_format import (
     bbox_to_yolo,
     format_label_line,
     parse_label_line,
+    polygon_to_bbox_yolo,
     yolo_to_bbox,
 )
 from agastya.types import BBox
+
+
+def test_polygon_to_bbox_yolo_spans_extremes():
+    coords = [0.2, 0.3, 0.6, 0.3, 0.6, 0.7, 0.2, 0.7]
+    cx, cy, w, h = polygon_to_bbox_yolo(coords)
+    assert cx == pytest.approx(0.4)
+    assert cy == pytest.approx(0.5)
+    assert w == pytest.approx(0.4)
+    assert h == pytest.approx(0.4)
+
+
+def test_polygon_to_bbox_yolo_rejects_odd_coords():
+    with pytest.raises(ValueError):
+        polygon_to_bbox_yolo([0.1, 0.2, 0.3])
 
 
 def test_bbox_to_yolo_centers_and_normalizes():

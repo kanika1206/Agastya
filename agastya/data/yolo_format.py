@@ -1,6 +1,23 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from agastya.types import BBox
+
+
+def polygon_to_bbox_yolo(coords: Sequence[float]) -> tuple[float, float, float, float]:
+    if len(coords) < 6 or len(coords) % 2 != 0:
+        raise ValueError(f"polygon needs an even count of >=6 coords, got {len(coords)}")
+    xs = coords[0::2]
+    ys = coords[1::2]
+    x_min, x_max = min(xs), max(xs)
+    y_min, y_max = min(ys), max(ys)
+    return (
+        (x_min + x_max) / 2.0,
+        (y_min + y_max) / 2.0,
+        x_max - x_min,
+        y_max - y_min,
+    )
 
 
 def bbox_to_yolo(
