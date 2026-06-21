@@ -10,8 +10,16 @@ _TRIPLE_MAP: dict[str, str] = {
     "motorcycle": "motorcycle",
 }
 
+_SAFETY_MAP: dict[str, str] = {
+    "helmet": "helmet",
+    "no-helmet": "no-helmet",
+    "number-plate": "license-plate",
+    "bike": "motorcycle",
+}
+
 _SOURCES: dict[str, dict[str, str]] = {
     "triple": _TRIPLE_MAP,
+    "safety": _SAFETY_MAP,
 }
 
 

@@ -24,6 +24,22 @@ def test_triple_motorcycle_maps():
     assert map_source_label("triple", "motorcycle") == name_to_id("motorcycle")
 
 
+def test_safety_bike_maps_to_motorcycle():
+    assert map_source_label("safety", "bike") == name_to_id("motorcycle")
+
+
+def test_safety_number_plate_maps_to_license_plate():
+    assert map_source_label("safety", "number-plate") == name_to_id("license-plate")
+
+
+def test_safety_helmet_maps():
+    assert map_source_label("safety", "helmet") == name_to_id("helmet")
+
+
+def test_safety_no_helmet_maps():
+    assert map_source_label("safety", "no-helmet") == name_to_id("no-helmet")
+
+
 def test_unknown_source_label_returns_none():
     assert map_source_label("triple", "animal") is None
 
