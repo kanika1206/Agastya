@@ -2,7 +2,7 @@
 name = "agastya"
 version = "0.1.0"
 description = "Quality-adaptive, evidence-grade traffic-violation vision system"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = ["pydantic>=2.6"]
 
 [project.optional-dependencies]
