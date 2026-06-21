@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+data/raw/
+data/processed/
+weights/
+runs/
+*.pt
+*.onnx
