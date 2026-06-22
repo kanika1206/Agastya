@@ -41,8 +41,8 @@
     <div class="card" data-reveal style="padding:0;overflow:hidden;">
       <div style="overflow-x:auto;">
         <table class="ledger">
-          <thead><tr><th>ID</th><th>Type</th><th>Tier</th><th>Conf.</th><th>Plate</th><th>Camera</th><th>Captured</th><th></th></tr></thead>
-          <tbody id="rows"><tr><td colspan="8" class="ag-empty">Loading…</td></tr></tbody>
+          <thead><tr><th></th><th>ID</th><th>Type</th><th>Tier</th><th>Conf.</th><th>Plate</th><th>Camera</th><th>Captured</th><th></th></tr></thead>
+          <tbody id="rows"><tr><td colspan="9" class="ag-empty">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -98,7 +98,7 @@
 
   function load(){
     var tb=document.getElementById('rows');
-    tb.innerHTML='<tr><td colspan="8" class="ag-empty">Loading…</td></tr>';
+    tb.innerHTML='<tr><td colspan="9" class="ag-empty">Loading…</td></tr>';
     var p={limit:LIMIT,offset:state.offset,sort:state.sort};
     ['violation_type','plate','camera_id','min_confidence'].forEach(function(k){ if(state[k])p[k]=state[k]; });
     A.api.violations(p).then(function(r){
@@ -108,17 +108,18 @@
       pager(meta);
     }).catch(function(){
       A.chrome.offline();
-      tb.innerHTML='<tr><td colspan="8" class="ag-error">Backend unreachable — start API on '+A.cfg.base+'</td></tr>';
+      tb.innerHTML='<tr><td colspan="9" class="ag-error">Backend unreachable — start API on '+A.cfg.base+'</td></tr>';
     });
   }
 
   function render(rows){
     var tb=document.getElementById('rows');
-    if(!rows.length){ tb.innerHTML='<tr><td colspan="8" class="ag-empty">No records match these filters.</td></tr>'; return; }
+    if(!rows.length){ tb.innerHTML='<tr><td colspan="9" class="ag-empty">No records match these filters.</td></tr>'; return; }
     tb.innerHTML=rows.map(function(v){
       var tier=F.vtTier(v.violation_type), c=F.tierColor(tier);
       var q='detail.html?id='+v.id+'&type='+encodeURIComponent(v.violation_type)+'&conf='+v.confidence+'&plate='+encodeURIComponent(v.plate||'')+'&cam='+encodeURIComponent(v.camera_id||'');
       return '<tr onclick="location.href=\''+q+'\'">'+
+        '<td style="width:52px;padding-right:0;"><img src="assets/violations/'+v.violation_type+'.jpg" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'" style="width:44px;height:33px;object-fit:cover;border-radius:4px;border:1px solid var(--line-2);display:block;"></td>'+
         '<td class="mono">#'+v.id+'</td>'+
         '<td>'+F.vtLabel(v.violation_type)+(F.isLive(v.violation_type)?'':' <span class="chip" style="font-size:8px;padding:1px 6px;border-color:'+c+';color:'+c+';">sim</span>')+'</td>'+
         '<td><span class="chip" style="border-color:'+c+';color:'+c+';">'+F.tierLabel(tier)+'</span></td>'+

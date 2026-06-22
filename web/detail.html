@@ -97,7 +97,10 @@
   // evidence image
   var img=document.getElementById('evimg');
   img.src=A.api.imageURL(id);
-  img.onerror=function(){ img.style.display='none'; var fb=document.getElementById('imgFallback'); fb.style.display='flex'; };
+  img.onerror=function(){
+    if(type && !img.dataset.fellBack){ img.dataset.fellBack='1'; img.src='assets/violations/'+type+'.jpg'; return; }
+    img.style.display='none'; var fb=document.getElementById('imgFallback'); fb.style.display='flex';
+  };
 
   // bundle
   A.api.violation(id).then(function(r){
