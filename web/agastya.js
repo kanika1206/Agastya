@@ -5,7 +5,7 @@
   "use strict";
 
   var qp = new URLSearchParams(location.search);
-  var BASE = qp.get("api") || window.AGASTYA_API || "http://localhost:8000";
+  var BASE = qp.get("api") || window.AGASTYA_API || "https://agastyaflip.onrender.com";
 
   /* ---------------- API ---------------- */
   function env(path) {
