@@ -9,7 +9,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700&family=Archivo:wght@400;500;600;700;800&family=Spline+Sans+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="agastya.css">
 <style>
-  .det{display:grid;grid-template-columns:1.05fr .95fr;gap:24px;}
+  .det{display:grid;grid-template-columns:1.05fr .95fr;gap:16px;align-items:start;}
+  .verify-below{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;}
+  @media(max-width:1000px){.verify-below{grid-template-columns:1fr;}}
   .evimg{width:100%;aspect-ratio:4/3;border-radius:var(--r);border:1px solid var(--line-2);object-fit:cover;background:#222;}
   .kv{display:grid;grid-template-columns:130px 1fr;gap:6px 16px;font-size:13px;}
   .kv dt{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--ink-4);text-transform:uppercase;padding-top:3px;}
@@ -45,29 +47,30 @@
         <div class="label" style="margin-top:10px;">Evidence frame · served from /violations/{id}/image</div>
       </div>
 
-      <!-- meta + verify -->
+      <!-- meta -->
       <div data-reveal data-reveal-delay="80">
         <div class="card">
-          <div class="label" style="letter-spacing:1.5px;margin-bottom:14px;">Record metadata</div>
+          <div class="label" style="letter-spacing:1.5px;margin-bottom:12px;">Record metadata</div>
           <dl class="kv" id="meta"><dt>Loading…</dt><dd></dd></dl>
-        </div>
-
-        <div class="card" style="margin-top:18px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div class="label" style="letter-spacing:1.5px;">Cryptographic verification</div>
-            <button class="btn btn-green btn-sm" id="verifyBtn">RUN VERIFY →</button>
-          </div>
-          <div id="verifyOut" style="margin-top:14px;">
-            <div class="label" style="color:var(--ink-5);">Press “run verify” to re-check chain &amp; credential against the live signing key.</div>
-          </div>
         </div>
       </div>
     </div>
 
-    <!-- audit chain -->
-    <div class="card" data-reveal style="margin-top:22px;">
-      <div class="label" style="letter-spacing:1.5px;margin-bottom:16px;">Audit chain — append-only ledger</div>
-      <div class="chain" id="chain"><div class="skeleton" style="height:120px;"></div></div>
+    <div class="verify-below">
+      <div class="card" data-reveal>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div class="label" style="letter-spacing:1.5px;">Cryptographic verification</div>
+          <button class="btn btn-green btn-sm" id="verifyBtn">RUN VERIFY →</button>
+        </div>
+        <div id="verifyOut" style="margin-top:12px;">
+          <div class="label" style="color:var(--ink-5);">Press “run verify” to re-check chain &amp; credential against the live signing key.</div>
+        </div>
+      </div>
+
+      <div class="card" data-reveal data-reveal-delay="80">
+        <div class="label" style="letter-spacing:1.5px;margin-bottom:12px;">Audit chain — append-only ledger</div>
+        <div class="chain" id="chain"><div class="skeleton" style="height:120px;"></div></div>
+      </div>
     </div>
   </section>
 

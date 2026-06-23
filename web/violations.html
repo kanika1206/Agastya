@@ -9,9 +9,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700&family=Archivo:wght@400;500;600;700;800&family=Spline+Sans+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="agastya.css">
 <style>
-  .filters{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;align-items:end;}
-  .pager{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 4px;flex-wrap:wrap;}
-  .pgbtn{font-family:var(--mono);font-size:12px;padding:9px 16px;border:1px solid var(--line-2);border-radius:var(--r-sm);background:#fff;cursor:pointer;}
+  .filters{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;align-items:end;}
+  .pager{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 4px;flex-wrap:wrap;}
+  .pgbtn{font-family:var(--mono);font-size:12px;padding:7px 14px;border:1px solid var(--line-2);border-radius:var(--r-sm);background:#fff;cursor:pointer;}
   .pgbtn[disabled]{opacity:.35;cursor:not-allowed;}
   @media(max-width:1000px){.filters{grid-template-columns:repeat(2,1fr);}}
 </style>
@@ -26,8 +26,9 @@
       <span class="aside" id="count">—</span>
     </div>
 
-    <div class="card" data-reveal style="margin-bottom:18px;">
-      <form id="filters" class="filters">
+    <div class="panel" data-reveal style="margin-bottom:14px;">
+      <div class="panel-head"><span class="label" style="letter-spacing:1.4px;">Filters</span><a href="#" id="clear" class="label" style="color:var(--red);text-decoration:none;">clear all ✕</a></div>
+      <form id="filters" class="filters" style="padding:13px 16px;">
         <div class="field"><label>Type</label><select class="input" name="violation_type" id="fType"><option value="">All types</option></select></div>
         <div class="field"><label>Plate</label><input class="input" name="plate" id="fPlate" placeholder="KA01…"></div>
         <div class="field"><label>Camera ID</label><input class="input" name="camera_id" id="fCam" placeholder="cam_…"></div>
@@ -35,11 +36,11 @@
         <div class="field"><label>Sort</label><select class="input" name="sort" id="fSort"><option value="newest">Newest</option><option value="oldest">Oldest</option></select></div>
         <div class="field"><label>&nbsp;</label><button type="submit" class="btn btn-red btn-sm" style="justify-content:center;">Apply</button></div>
       </form>
-      <div style="margin-top:10px;"><a href="#" id="clear" class="label" style="color:var(--red);text-decoration:none;">clear filters</a></div>
     </div>
 
-    <div class="card" data-reveal style="padding:0;overflow:hidden;">
-      <div style="overflow-x:auto;">
+    <div class="panel" data-reveal>
+      <div class="panel-head"><span class="label" style="letter-spacing:1.4px;">Signed records</span><span class="label" id="rangeTop">—</span></div>
+      <div style="overflow-x:auto;max-height:64vh;">
         <table class="ledger">
           <thead><tr><th></th><th>ID</th><th>Type</th><th>Tier</th><th>Conf.</th><th>Plate</th><th>Camera</th><th>Captured</th><th></th></tr></thead>
           <tbody id="rows"><tr><td colspan="9" class="ag-empty">Loading…</td></tr></tbody>
@@ -136,6 +137,7 @@
     var total=meta.total||0, off=meta.offset||0, lim=meta.limit||LIMIT;
     var from=total?off+1:0, to=Math.min(off+lim,total);
     document.getElementById('rangeLbl').textContent='showing '+from+'–'+to+' of '+F.n(total);
+    document.getElementById('rangeTop').textContent=from+'–'+to+' / '+F.n(total);
     var page=Math.floor(off/lim)+1, pages=Math.max(1,Math.ceil(total/lim));
     document.getElementById('pageLbl').textContent='page '+page+' / '+pages;
     document.getElementById('prev').disabled= off<=0;
