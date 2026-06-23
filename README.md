@@ -1,3 +1,13 @@
+-------
+# FLIPKART GRIDLOCK 2.0 SUBMISSION 
+Theme: Automated Photo Identification and Classification for Traffic Violations using Computer Vision
+Team Name : Boolean Babes
+Team Leader : Japnoor Kaur -- kaurjapnoor123@gmail.com (@JapnoorKB19 )
+Kiran Sehrawat -- 2023ucs0099@iitjammu.ac.in (@klaig19 )
+Kanika -- 2023ucs0095@iitjammu.ac.in (@kanika1206 )
+
+
+
 # AGASTYA
 
 **Automated, tamper-evident traffic-violation enforcement from photographic evidence.**
