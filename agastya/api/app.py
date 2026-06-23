@@ -9,6 +9,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
+from agastya.paths import resolve_evidence_path
 from agastya.stages.evidence.audit import AuditEntry, verify_chain
 from agastya.stages.evidence.credential import verify_credential
 from agastya.store.sqlite_store import (
@@ -121,7 +122,7 @@ def create_app(store: ViolationStore, *, signing_key: bytes | None = None) -> Fa
         bundle = store.get(violation_id)
         if bundle is None:
             raise HTTPException(status_code=404, detail="violation not found")
-        image_path = bundle.get("image_path")
+        image_path = resolve_evidence_path(bundle.get("image_path"))
         if not image_path or not os.path.exists(image_path):
             raise HTTPException(status_code=404, detail="evidence image not found")
         media_type, _ = mimetypes.guess_type(image_path)

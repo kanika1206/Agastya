@@ -119,7 +119,7 @@ def main() -> None:
         )
         vid = store.save(bundle, created_at=ts, dedup_key=dedup)
 
-        img_path = os.path.abspath(os.path.join(args.images, f"{vid}.png"))
+        img_path = os.path.join(args.images, f"{vid}.png")
         with open(img_path, "wb") as fh:
             fh.write(img)
         store.set_image_path(vid, img_path)

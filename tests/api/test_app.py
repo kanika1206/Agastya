@@ -97,6 +97,21 @@ def test_image_404_without_evidence(client):
     assert client.get("/violations/1/image").status_code == 404
 
 
+def test_image_endpoint_serves_relative_path(tmp_path, monkeypatch):
+    monkeypatch.setenv("AGASTYA_EVIDENCE_ROOT", str(tmp_path))
+    evidence_dir = tmp_path / "web" / "assets" / "evidence"
+    evidence_dir.mkdir(parents=True)
+    (evidence_dir / "1.png").write_bytes(b"\x89PNG\r\n\x1a\n")
+    store = ViolationStore(":memory:")
+    vid = store.save(_bundle(pixels=b"rel"))
+    store.set_image_path(vid, "web/assets/evidence/1.png")
+    client = TestClient(create_app(store, signing_key=_KEY))
+    response = client.get(f"/violations/{vid}/image")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+    store.close()
+
+
 def test_image_endpoint_serves_jpeg(tmp_path):
     import cv2
     import numpy as np
